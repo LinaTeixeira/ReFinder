@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "176610302195",
+    "project_id": "refinder-296ac",
+    "storage_bucket": "refinder-296ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176610302195:android:068d3f32f20b957ff03f86",
+        "android_client_info": {
+          "package_name": "pt.ua.icm.refinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaPYjmlyzPnTYO5GPDSxvBtVME6PXwgcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
