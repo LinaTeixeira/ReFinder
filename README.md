@@ -1,5 +1,5 @@
-# 📱 ReFinder
-**A tua aplicação inteligente de perdidos e achados.**
+# ReFinder
+**Aplicação inteligente de perdidos e achados.**
 
 ![Android](https://img.shields.io/badge/platform-Android-3DDC84?style=flat-square&logo=android)
 ![Kotlin](https://img.shields.io/badge/language-Kotlin-7F52FF?style=flat-square&logo=kotlin)
@@ -11,7 +11,7 @@ Projeto desenvolvido no âmbito da disciplina de Introdução à Computação M�
 
 ---
 
-## 📸 Capturas de Ecrã
+## Capturas de Ecrã
 
 | Ecrã de Login | Feed Principal | Registar Item |
 |:---:|:---:|:---:|
@@ -20,30 +20,30 @@ Projeto desenvolvido no âmbito da disciplina de Introdução à Computação M�
 
 ---
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
-* **📸 Registo de Objetos:** Reporta facilmente itens perdidos ou encontrados com título, descrição, fotografias e data.
-* **📍 Localização Automática:** Captura das coordenadas GPS exatas no momento do registo do item.
-* **🔐 Smart Lockers:** Possibilidade de depositar o objeto achado num cacifo dedicado, utilizando *QR Codes* para o dono o desbloquear de forma 100% segura.
-* **🔍 Pesquisa Inteligente:** Filtros avançados por tamanho, cor e localização para encontrares rapidamente o que procuras.
-* **🗺️ Navegação Assistida:** Encaminhamento GPS direto até ao cacifo onde o item está guardado.
-* **👤 Autenticação Segura:** Sistema de registo, login e logout (Email/Password) para garantir fiabilidade e um histórico pessoal.
+* **Registo de Objetos:** Reporta facilmente itens perdidos ou encontrados com título, descrição, fotografias e data.
+* **Localização Automática:** Captura das coordenadas GPS exatas no momento do registo do item.
+* **Smart Lockers:** Possibilidade de depositar o objeto achado num cacifo dedicado, utilizando *QR Codes* para o dono o desbloquear de forma segura.
+* **Pesquisa Inteligente:** Filtros avançados por tamanho, cor e localização para encontrares rapidamente o que procuras.
+* **Navegação Assistida:** Encaminhamento GPS direto até ao cacifo onde o item está guardado.
+* **Autenticação Segura:** Sistema de registo, login e logout (Email/Password) para garantir fiabilidade e um histórico pessoal.
 
 ---
 
-## 👥 Experiência de Utilizador (UX) e Personas
+## Experiência de Utilizador e Personas
 
 Para garantir que a aplicação resolve problemas reais de forma intuitiva, baseámos o design e o fluxo de navegação em **Customer Journey Maps**. Criámos duas *personas* que representam os nossos utilizadores principais: quem perde (Mónica) e quem encontra (André).
 
-### 🙎‍♀️ A Perspetiva de quem perde: Mónica
+### A Perspetiva de quem perde: Mónica
 > *A Mónica é uma estudante recém-chegada a Aveiro que perdeu o seu porta-chaves favorito enquanto explorava a cidade.*
 
-**O que aprendemos com a Mónica:** Como representa um utilizador num estado de ansiedade, a sua jornada evidenciou a necessidade de **filtros de pesquisa precisos**, **navegação assistida** clara e a adição de **ecrãs de confirmação**. Isto ajuda a transmitir segurança durante a utilização da app.
+**O que aprendemos com a Mónica:** Como representa um utilizador mais ansioso, a sua jornada evidenciou a necessidade de **filtros de pesquisa precisos**, **navegação assistida** clara e a adição de **ecrãs de confirmação**. Isto ajuda a transmitir segurança durante a utilização da app.
 
 ![Customer Journey Map - Mónica](media/JourneyMonica.png)
 
-### 🙎‍♂️ A Perspetiva de quem encontra: André
-> *O André é um estudante em plena época de exames, que encontrou um porta-chaves no chão e quer devolvê-lo rapidamente.*
+### A Perspetiva de quem encontra: André
+> *O André é um estudante em época de exames, que encontrou um porta-chaves no chão e quer devolvê-lo rapidamente.*
 
 **O que aprendemos com o André:** Como utilizador apressado, ajudou-nos a focar na **agilização de todo o processo**. Daqui nasceram ideias como **gerar descrições automáticas** para o objeto e o destaque no mapa para os cacifos mais próximos, permitindo um depósito imediato.
 
@@ -51,7 +51,7 @@ Para garantir que a aplicação resolve problemas reais de forma intuitiva, base
 
 ---
 
-## 📱 Fluxo de Ecrãs (UI/UX)
+## Fluxo de Ecrãs (UI/UX)
 
 O fluxo de navegação foi desenhado para ser fluido e acessível com o menor número de cliques possível:
 
@@ -60,7 +60,7 @@ O fluxo de navegação foi desenhado para ser fluido e acessível com o menor n�
 
 ---
 
-## 🧱 Tecnologias e Arquitetura
+## Tecnologias e Arquitetura
 
 * **Linguagem:** Kotlin
 * **UI:** Jetpack Compose
@@ -68,7 +68,7 @@ O fluxo de navegação foi desenhado para ser fluido e acessível com o menor n�
 * **Backend:** Firebase (Authentication & Cloud Firestore)
 * **Sensores & Serviços:** Google Play Services (`FusedLocationProviderClient`)
 
-### 📂 Estrutura do Projeto
+### Estrutura do Projeto
 ```text
 pt.ua.icm.refinder
 │
@@ -87,7 +87,7 @@ pt.ua.icm.refinder
 
 ---
 
-## ☁️ Base de Dados (Firestore)
+## Base de Dados (Firestore)
 
 A aplicação guarda a informação na coleção `items`. Cada item fica permanentemente associado ao `userId` de quem o registou. Exemplo de um documento real:
 
@@ -108,7 +108,7 @@ A aplicação guarda a informação na coleção `items`. Cada item fica permane
 ```
 
 ---
-## 👨‍💻 Autores
+## Autores
 
 - **Rodrigo Costa** - [GitHub](https://github.com/rodrigosc8)
 - **Carolina Teixeira** - [GitHub](https://github.com/LinaTeixeira)
