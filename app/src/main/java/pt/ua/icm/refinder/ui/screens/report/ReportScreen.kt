@@ -1,4 +1,4 @@
-package pt.ua.icm.refinder.ui.screens
+package pt.ua.icm.refinder.ui.screens.report
 
 import android.Manifest
 import android.content.Context
@@ -26,27 +26,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.rememberAsyncImagePainter
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.annotation.SuppressLint
+import android.location.Location
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportScreen() {
+fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
+
+
+
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var selectedTypeIndex by remember { mutableIntStateOf(0) }
     val types = listOf("Perdido", "Achado")
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var tempUri by remember { mutableStateOf<Uri?>(null) }
     var showImageSourceDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    val isLoading = viewModel.isLoading
+    val successMessage = viewModel.successMessage
+    val errorMessage = viewModel.errorMessage
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -61,6 +75,9 @@ fun ReportScreen() {
             imageUri = tempUri
         }
     }
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -71,6 +88,62 @@ fun ReportScreen() {
             cameraLauncher.launch(uri)
         } else {
             Toast.makeText(context, "Permissão da câmara negada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+        if (fineGranted || coarseGranted) {
+            getCurrentLocation(
+                context = context,
+                fusedLocationClient = fusedLocationClient,
+                onLocationReceived = { location ->
+                    latitude = location?.latitude
+                    longitude = location?.longitude
+                },
+                onError = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            Toast.makeText(context, "Permissão de localização negada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val fineGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val coarseGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineGranted || coarseGranted) {
+            getCurrentLocation(
+                context = context,
+                fusedLocationClient = fusedLocationClient,
+                onLocationReceived = { location ->
+                    latitude = location?.latitude
+                    longitude = location?.longitude
+                },
+                onError = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }
     }
 
@@ -92,6 +165,26 @@ fun ReportScreen() {
     val dateString = datePickerState.selectedDateMillis?.let {
         dateFormatter.format(Date(it))
     } ?: ""
+    LaunchedEffect(successMessage) {
+        successMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+
+            title = ""
+            description = ""
+            location = ""
+            imageUri = null
+            selectedTypeIndex = 0
+
+            viewModel.clearMessages()
+        }
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, "Erro: $it", Toast.LENGTH_LONG).show()
+            viewModel.clearMessages()
+        }
+    }
 
     if (showDatePicker) {
         DatePickerDialog(
@@ -208,6 +301,13 @@ fun ReportScreen() {
             label = { Text("Local") },
             modifier = Modifier.fillMaxWidth()
         )
+        Text(
+            text = if (latitude != null && longitude != null) {
+                "GPS: $latitude, $longitude"
+            } else {
+                "GPS não disponível"
+            }
+        )
 
         OutlinedTextField(
             value = dateString,
@@ -242,12 +342,48 @@ fun ReportScreen() {
         )
 
         Button(
-            onClick = { /* TODO - registar o objeto */ },
+            onClick = {
+                val selectedType = if (selectedTypeIndex == 0) "lost" else "found"
+
+                when {
+                    title.isBlank() -> {
+                        Toast.makeText(context, "Introduza o nome do item", Toast.LENGTH_SHORT).show()
+                    }
+                    location.isBlank() -> {
+                        Toast.makeText(context, "Introduza o local", Toast.LENGTH_SHORT).show()
+                    }
+                    dateString.isBlank() -> {
+                        Toast.makeText(context, "Selecione uma data", Toast.LENGTH_SHORT).show()
+                    }
+                    description.isBlank() -> {
+                        Toast.makeText(context, "Introduza uma descrição", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        viewModel.submitItem(
+                            title = title,
+                            description = description,
+                            type = selectedType,
+                            locationName = location,
+                            date = dateString,
+                            latitude = latitude,
+                            longitude = longitude
+                        )
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp)
+                .padding(top = 16.dp),
+            enabled = !isLoading
         ) {
-            Text("Registar Item ${types[selectedTypeIndex]}")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Registar Item ${types[selectedTypeIndex]}")
+            }
         }
     }
 }
@@ -262,6 +398,22 @@ private fun getTempUri(context: Context): Uri {
         "${context.packageName}.provider",
         tempFile
     )
+}
+
+@SuppressLint("MissingPermission")
+private fun getCurrentLocation(
+    context: Context,
+    fusedLocationClient: FusedLocationProviderClient,
+    onLocationReceived: (Location?) -> Unit,
+    onError: (String) -> Unit
+) {
+    fusedLocationClient.lastLocation
+        .addOnSuccessListener { location ->
+            onLocationReceived(location)
+        }
+        .addOnFailureListener { e ->
+            onError(e.message ?: "Erro ao obter localização")
+        }
 }
 
 @Preview(showBackground = true)

@@ -18,11 +18,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import pt.ua.icm.refinder.data.repository.AuthRepository
 import pt.ua.icm.refinder.ui.navigation.BottomNavItem
-import pt.ua.icm.refinder.ui.screens.HomeScreen
+import pt.ua.icm.refinder.ui.screens.home.HomeScreen
 import pt.ua.icm.refinder.ui.screens.ProfileScreen
-import pt.ua.icm.refinder.ui.screens.ReportScreen
+import pt.ua.icm.refinder.ui.screens.report.ReportScreen
 import pt.ua.icm.refinder.ui.screens.SearchScreen
+import pt.ua.icm.refinder.ui.screens.auth.AuthScreen
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +42,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    val authRepository = AuthRepository()
+
+    val startDestination = if (authRepository.isUserLoggedIn()) {
+        BottomNavItem.Home.route
+    } else {
+        "auth"
+    }
 
     val items = listOf(
         BottomNavItem.Home,
@@ -48,42 +57,59 @@ fun MainScreen() {
         BottomNavItem.Profile
     )
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val showBottomBar = currentRoute != "auth"
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                items.forEach { item ->
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId)
-                                launchSingleTop = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label
-                            )
-                        },
-                        label = { Text(item.label) }
-                    )
+            if (showBottomBar) {
+                NavigationBar {
+                    items.forEach { item ->
+                        NavigationBarItem(
+                            selected = currentRoute == item.route,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label
+                                )
+                            },
+                            label = { Text(item.label) }
+                        )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = BottomNavItem.Home.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable("auth") {
+                AuthScreen(
+                    onAuthSuccess = {
+                        navController.navigate(BottomNavItem.Home.route) {
+                            popUpTo("auth") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
             composable(BottomNavItem.Home.route) { HomeScreen() }
             composable(BottomNavItem.Report.route) { ReportScreen() }
             composable(BottomNavItem.Search.route) { SearchScreen() }
-            composable(BottomNavItem.Profile.route) { ProfileScreen() }
+            composable(BottomNavItem.Profile.route) {
+                ProfileScreen(navController = navController)
+            }
         }
     }
 }
