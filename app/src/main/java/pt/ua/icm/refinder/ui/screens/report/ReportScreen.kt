@@ -37,6 +37,10 @@ import android.annotation.SuppressLint
 import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -333,6 +337,27 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             )
         )
 
+        if (imageUri != null) {
+            Button(
+                onClick = {
+                    // Use the function defined at the bottom of this file
+                    val bitmap = uriToBitmap(context, imageUri!!)
+
+                    viewModel.generateAiDescription(bitmap) { generatedText ->
+                        description = generatedText
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !viewModel.isAiLoading
+            ) {
+                if (viewModel.isAiLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Text("Gerar descrição com IA")
+                }
+            }
+        }
+
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -400,6 +425,14 @@ private fun getTempUri(context: Context): Uri {
     )
 }
 
+fun uriToBitmap(context: Context, uri: Uri): Bitmap {
+    return if (Build.VERSION.SDK_INT < 28) {
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+    } else {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        ImageDecoder.decodeBitmap(source)
+    }
+}
 @SuppressLint("MissingPermission")
 private fun getCurrentLocation(
     context: Context,
