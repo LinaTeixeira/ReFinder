@@ -6,6 +6,7 @@
 ![Firebase](https://img.shields.io/badge/backend-Firebase-FFCA28?style=flat-square&logo=firebase)
 
 ## Nota: para testar a app o login é *test@test.pt* com password *admin1*
+## Para testar as funcionalidades de IA por favor crie a sua chave em: https://aistudio.google.com
 O **ReFinder** é uma aplicação Android desenvolvida em Kotlin com Jetpack Compose para simplificar e modernizar o processo de devolução de objetos perdidos. Através da integração de cacifos inteligentes (*smart lockers*), a app liga quem perdeu um objeto a quem o encontrou, garantindo uma devolução segura, rápida e eficiente.
 
 Projeto desenvolvido no âmbito da disciplina de Introdução à Computação Móvel da Universidade de Aveiro.

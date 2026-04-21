@@ -15,10 +15,10 @@ class ReportViewModel : ViewModel() {
 
     private val repository = FirebaseItemRepository()
 
-    // Using the Google AI SDK (Works on Spark/Free plan)
+
     private val generativeModel = GenerativeModel(
         modelName = "gemini-2.5-flash",
-        apiKey = "AIzaSyDmnwlQEEHfO7WEALl_MQcgWgSMO8iKx8c"
+        apiKey = "YOUR_API_KEY"
     )
 
 
