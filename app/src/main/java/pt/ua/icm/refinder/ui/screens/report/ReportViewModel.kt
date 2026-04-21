@@ -1,26 +1,29 @@
 package pt.ua.icm.refinder.ui.screens.report
 
+import android.app.Application
 import android.graphics.Bitmap
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.AndroidViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
-import kotlinx.coroutines.launch
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.mlkit.genai.imagedescription.ImageDescriber
+import com.google.mlkit.genai.imagedescription.ImageDescriberOptions
+import com.google.mlkit.genai.imagedescription.ImageDescription
+import com.google.mlkit.genai.imagedescription.ImageDescriptionRequest
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
 
-class ReportViewModel : ViewModel() {
+class ReportViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = FirebaseItemRepository()
 
-
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-2.5-flash",
-        apiKey = "YOUR_API_KEY"
-    )
-
+    private val describer: ImageDescriber by lazy {
+        val options = ImageDescriberOptions.builder(getApplication()).build()
+        ImageDescription.getClient(options)
+    }
 
     var isLoading by mutableStateOf(false)
         private set
@@ -35,24 +38,37 @@ class ReportViewModel : ViewModel() {
         private set
 
     fun generateAiDescription(bitmap: Bitmap, onResult: (String) -> Unit) {
-        viewModelScope.launch {
-            isAiLoading = true
-            errorMessage = null
-            try {
-                val response = generativeModel.generateContent(
-                    content {
-                        image(bitmap)
-                        text("Descreva este objeto para uma aplicação de achados e perdidos. Seja breve e objetivo.")
+        isAiLoading = true
+        errorMessage = null
+
+        val request = ImageDescriptionRequest.builder(bitmap).build()
+        val mainExecutor = ContextCompat.getMainExecutor(getApplication())
+
+        val future = describer.runInference(request)
+
+        Futures.addCallback(
+            future,
+            object : FutureCallback<com.google.mlkit.genai.imagedescription.ImageDescriptionResult> {
+                override fun onSuccess(result: com.google.mlkit.genai.imagedescription.ImageDescriptionResult?) {
+                    val text = result?.description?.trim().orEmpty()
+
+                    if (text.isNotBlank()) {
+                        onResult(text)
+                    } else {
+                        onResult("Não foi possível gerar uma descrição para este objeto.")
                     }
-                )
-                response.text?.let { onResult(it) }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                errorMessage = "Erro na IA: ${e.localizedMessage}"
-            } finally {
-                isAiLoading = false
-            }
-        }
+
+                    isAiLoading = false
+                }
+
+                override fun onFailure(t: Throwable) {
+                    t.printStackTrace()
+                    errorMessage = "Erro a processar imagem: ${t.localizedMessage ?: "erro desconhecido"}"
+                    isAiLoading = false
+                }
+            },
+            mainExecutor
+        )
     }
 
     fun submitItem(
@@ -90,5 +106,10 @@ class ReportViewModel : ViewModel() {
     fun clearMessages() {
         successMessage = null
         errorMessage = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        describer.close()
     }
 }

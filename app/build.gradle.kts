@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "pt.ua.icm.refinder"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -68,5 +68,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("com.google.mlkit:genai-image-description:1.0.0-beta1")
+    implementation("com.google.mlkit:vision-common:17.3.0")
+    implementation("com.google.guava:guava:33.2.1-android")
 }
