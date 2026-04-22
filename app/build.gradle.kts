@@ -68,7 +68,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.mlkit:genai-image-description:1.0.0-beta1")
-    implementation("com.google.mlkit:vision-common:17.3.0")
-    implementation("com.google.guava:guava:33.2.1-android")
+    implementation("com.google.mlkit:image-labeling:17.0.9")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 }

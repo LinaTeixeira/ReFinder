@@ -1,29 +1,18 @@
 package pt.ua.icm.refinder.ui.screens.report
 
-import android.app.Application
 import android.graphics.Bitmap
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.AndroidViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.MoreExecutors
-import com.google.mlkit.genai.imagedescription.ImageDescriber
-import com.google.mlkit.genai.imagedescription.ImageDescriberOptions
-import com.google.mlkit.genai.imagedescription.ImageDescription
-import com.google.mlkit.genai.imagedescription.ImageDescriptionRequest
+import androidx.lifecycle.ViewModel
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
 
-class ReportViewModel(application: Application) : AndroidViewModel(application) {
+class ReportViewModel : ViewModel() {
 
     private val repository = FirebaseItemRepository()
-
-    private val describer: ImageDescriber by lazy {
-        val options = ImageDescriberOptions.builder(getApplication()).build()
-        ImageDescription.getClient(options)
-    }
 
     var isLoading by mutableStateOf(false)
         private set
@@ -41,34 +30,32 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
         isAiLoading = true
         errorMessage = null
 
-        val request = ImageDescriptionRequest.builder(bitmap).build()
-        val mainExecutor = ContextCompat.getMainExecutor(getApplication())
+        // 1. Converter o Bitmap para o formato que o ML Kit entende
+        val image = InputImage.fromBitmap(bitmap, 0)
 
-        val future = describer.runInference(request)
+        // 2. Usar o modelo base gratuito do ML Kit
+        val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
 
-        Futures.addCallback(
-            future,
-            object : FutureCallback<com.google.mlkit.genai.imagedescription.ImageDescriptionResult> {
-                override fun onSuccess(result: com.google.mlkit.genai.imagedescription.ImageDescriptionResult?) {
-                    val text = result?.description?.trim().orEmpty()
-
-                    if (text.isNotBlank()) {
-                        onResult(text)
-                    } else {
-                        onResult("Não foi possível gerar uma descrição para este objeto.")
-                    }
-
-                    isAiLoading = false
+        // 3. Processar a imagem
+        labeler.process(image)
+            .addOnSuccessListener { labels ->
+                if (labels.isEmpty()) {
+                    onResult("Não foi possível identificar o objeto na imagem.")
+                } else {
+                    // Pega nas 4 tags mais confiáveis (com maior índice de certeza) e junta-as
+                    // O ML Kit devolve as tags em inglês (ex: "Footwear", "Mobile phone")
+                    val tags = labels.take(4).joinToString(", ") { it.text }
+                    onResult(tags)
                 }
-
-                override fun onFailure(t: Throwable) {
-                    t.printStackTrace()
-                    errorMessage = "Erro a processar imagem: ${t.localizedMessage ?: "erro desconhecido"}"
-                    isAiLoading = false
-                }
-            },
-            mainExecutor
-        )
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                errorMessage = "Erro a analisar imagem: ${e.localizedMessage}"
+            }
+            .addOnCompleteListener {
+                // Executa sempre no final, quer tenha sucesso ou erro
+                isAiLoading = false
+            }
     }
 
     fun submitItem(
@@ -106,10 +93,5 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     fun clearMessages() {
         successMessage = null
         errorMessage = null
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        describer.close()
     }
 }

@@ -21,9 +21,9 @@ import androidx.navigation.compose.rememberNavController
 import pt.ua.icm.refinder.data.repository.AuthRepository
 import pt.ua.icm.refinder.ui.navigation.BottomNavItem
 import pt.ua.icm.refinder.ui.screens.home.HomeScreen
-import pt.ua.icm.refinder.ui.screens.ProfileScreen
+import pt.ua.icm.refinder.ui.screens.profile.ProfileScreen
 import pt.ua.icm.refinder.ui.screens.report.ReportScreen
-import pt.ua.icm.refinder.ui.screens.SearchScreen
+import pt.ua.icm.refinder.ui.screens.search.SearchScreen
 import pt.ua.icm.refinder.ui.screens.auth.AuthScreen
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 
