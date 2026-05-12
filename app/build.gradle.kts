@@ -71,4 +71,5 @@ dependencies {
     implementation("com.google.mlkit:image-labeling:17.0.9")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

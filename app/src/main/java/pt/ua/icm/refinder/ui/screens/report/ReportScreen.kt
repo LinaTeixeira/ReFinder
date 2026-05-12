@@ -41,6 +41,19 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.os.Build
 import android.provider.MediaStore
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import androidx.compose.ui.viewinterop.AndroidView
+import org.osmdroid.events.MapEventsReceiver
+import org.osmdroid.views.overlay.MapEventsOverlay
+import android.location.Geocoder
+import androidx.compose.material.icons.filled.Search
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,6 +129,12 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
         } else {
             Toast.makeText(context, "Permissão de localização negada", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val config = org.osmdroid.config.Configuration.getInstance()
+        config.userAgentValue = context.packageName
+        config.load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
     }
 
     LaunchedEffect(Unit) {
@@ -269,12 +288,14 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             }
         }
 
+        // TITLE
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Nome do item") },
             modifier = Modifier.fillMaxWidth()
         )
+        // IMAGE
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,20 +320,147 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             }
         }
 
+        // GENERATE DESCRIPTION BUTTON
+        if (imageUri != null) {
+            Button(
+                onClick = {
+                    // Use the function defined at the bottom of this file
+                    val bitmap = uriToBitmap(context, imageUri!!)
+
+                    viewModel.generateAiDescription(bitmap) { generatedText ->
+                        description = generatedText
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !viewModel.isAiLoading
+            ) {
+                if (viewModel.isAiLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Text("Gerar descrição com IA")
+                }
+            }
+        }
+
+        // DESCRIPTION
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Adicione uma descrição") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3
+        )
+
+        // LOCAL SEARCH
         OutlinedTextField(
             value = location,
             onValueChange = { location = it },
             label = { Text("Local") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = if (latitude != null && longitude != null) {
-                "GPS: $latitude, $longitude"
-            } else {
-                "GPS não disponível"
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = {
+                    if (location.isNotBlank()) {
+                        searchLocation(context, location) { lat, lon ->
+                            latitude = lat
+                            longitude = lon
+                        }
+                    }
+                }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search Location")
+                }
             }
         )
 
+        // MAP
+        Text(
+            text = "Localização GPS",
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .pointerInput(Unit) {
+                    detectDragGestures { _, _ -> }
+                },
+            shape = MaterialTheme.shapes.medium
+        ) {
+            AndroidView(
+                factory = { ctx ->MapView(ctx).apply {
+                    setTileSource(TileSourceFactory.MAPNIK)
+
+                    setMultiTouchControls(true)       // Enables pinch-to-zoom
+                    setBuiltInZoomControls(false)      // Enables zoom controls
+                    controller.setZoom(15.0)
+
+                    val startPoint = if (latitude != null && longitude != null)
+                        GeoPoint(latitude!!, longitude!!)
+                    else GeoPoint(46.0, -8.0)  // Aveiro
+                    controller.setCenter(startPoint)
+
+                    val receiver = object : MapEventsReceiver {
+                        override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                            latitude = p.latitude
+                            longitude = p.longitude
+                            val geocoder = Geocoder(context, Locale.getDefault())
+                            try {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    geocoder.getFromLocation(p.latitude, p.longitude, 1) { addresses ->
+                                        addresses.firstOrNull()?.let { addr ->
+                                            location = addr.getAddressLine(0) ?: ""
+                                        }
+                                    }
+                                } else {
+                                    val addresses = geocoder.getFromLocation(p.latitude, p.longitude, 1)
+                                    addresses?.firstOrNull()?.let { addr ->
+                                        location = addr.getAddressLine(0) ?: ""
+                                    }
+                                }
+                            } catch (e: Exception) { /* ignore geocoding errors */ }
+
+                            return true
+                        }
+                        override fun longPressHelper(p: GeoPoint): Boolean = false
+                    }
+                    overlays.add(MapEventsOverlay(receiver))
+                }
+                },
+                update = { mapView ->
+                    if (latitude != null && longitude != null) {
+                        val point = GeoPoint(latitude!!, longitude!!)
+
+                        mapView.controller.animateTo(point)
+
+                        val existingMarkers = mapView.overlays.filterIsInstance<Marker>()
+                        mapView.overlays.removeAll(existingMarkers)
+
+                        val marker = Marker(mapView).apply {
+                            position = point
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            title = "Local Selecionado"
+                        }
+                        mapView.overlays.add(marker)
+                        mapView.invalidate()
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // GPS
+        Text(
+            text = if (latitude != null && longitude != null) {
+                "GPS: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}"
+            } else {
+                "GPS não disponível"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant // Optional: use a subtler color
+        )
+
+        // DATE
         OutlinedTextField(
             value = dateString,
             onValueChange = { },
@@ -337,34 +485,6 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             )
         )
 
-        if (imageUri != null) {
-            Button(
-                onClick = {
-                    // Use the function defined at the bottom of this file
-                    val bitmap = uriToBitmap(context, imageUri!!)
-
-                    viewModel.generateAiDescription(bitmap) { generatedText ->
-                        description = generatedText
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !viewModel.isAiLoading
-            ) {
-                if (viewModel.isAiLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                } else {
-                    Text("Gerar descrição com IA")
-                }
-            }
-        }
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Adicione uma descrição") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3
-        )
 
         Button(
             onClick = {
@@ -456,5 +576,29 @@ fun ReportScreenPreview() {
         Surface {
             ReportScreen()
         }
+    }
+}
+
+fun searchLocation(context: Context, query: String, onResult: (Double, Double) -> Unit) {
+    val geocoder = Geocoder(context)
+    try {
+        // Modern Android (SDK 33+) uses a listener, older uses a blocking call
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            geocoder.getFromLocationName(query, 1) { addresses ->
+                val address = addresses.firstOrNull()
+                if (address != null) {
+                    onResult(address.latitude, address.longitude)
+                }
+            }
+        } else {
+            // Fallback for older versions
+            val addresses = geocoder.getFromLocationName(query, 1)
+            val address = addresses?.firstOrNull()
+            if (address != null) {
+                onResult(address.latitude, address.longitude)
+            }
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Local não encontrado", Toast.LENGTH_SHORT).show()
     }
 }
