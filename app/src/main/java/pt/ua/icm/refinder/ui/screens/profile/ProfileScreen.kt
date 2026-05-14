@@ -102,7 +102,10 @@ fun ProfileScreen(
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(viewModel.userItems) { item ->
-                    ItemCard(item = item)
+                    ItemCard(
+                        item = item,
+                        onClick = { navController.navigate("itemDetail/${item.id}") }
+                    )
                 }
             }
         }

@@ -9,6 +9,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
+import android.net.Uri
 
 class ReportViewModel : ViewModel() {
 
@@ -62,10 +63,12 @@ class ReportViewModel : ViewModel() {
         title: String,
         description: String,
         type: String,
+        category: String,
         locationName: String,
         date: String,
         latitude: Double?,
-        longitude: Double?
+        longitude: Double?,
+        imageUri: Uri?
     ) {
         isLoading = true
         successMessage = null
@@ -75,10 +78,12 @@ class ReportViewModel : ViewModel() {
             title = title,
             description = description,
             type = type,
+            category = category,
             locationName = locationName,
             date = date,
             latitude = latitude,
             longitude = longitude,
+            imageUri = imageUri,
             onSuccess = {
                 isLoading = false
                 successMessage = "Item registado com sucesso."

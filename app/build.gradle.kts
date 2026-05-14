@@ -66,10 +66,11 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.mlkit:image-labeling:17.0.9")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("com.google.zxing:core:3.5.3")
 }

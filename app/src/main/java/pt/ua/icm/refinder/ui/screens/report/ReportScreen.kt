@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.rememberAsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import pt.ua.icm.refinder.data.model.itemCategories
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -68,6 +69,9 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
     val types = listOf("Perdido", "Achado")
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
+
+    var selectedCategory by remember { mutableStateOf("Outro") }
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var tempUri by remember { mutableStateOf<Uri?>(null) }
@@ -295,6 +299,40 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             label = { Text("Nome do item") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        // CATEGORY
+        ExposedDropdownMenuBox(
+            expanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = !categoryExpanded }
+        ) {
+            OutlinedTextField(
+                value = selectedCategory,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Categoria") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = categoryExpanded,
+                onDismissRequest = { categoryExpanded = false }
+            ) {
+                itemCategories.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category) },
+                        onClick = {
+                            selectedCategory = category
+                            categoryExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
         // IMAGE
         Card(
             modifier = Modifier
@@ -508,10 +546,12 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                             title = title,
                             description = description,
                             type = selectedType,
+                            category = selectedCategory,
                             locationName = location,
                             date = dateString,
                             latitude = latitude,
-                            longitude = longitude
+                            longitude = longitude,
+                            imageUri = imageUri
                         )
                     }
                 }

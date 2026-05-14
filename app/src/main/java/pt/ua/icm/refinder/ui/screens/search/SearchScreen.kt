@@ -5,120 +5,121 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import pt.ua.icm.refinder.data.model.LostItem
-
+import pt.ua.icm.refinder.data.model.searchCategories
+import pt.ua.icm.refinder.ui.components.ItemCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
+    onItemClick: (String) -> Unit,
     viewModel: SearchViewModel = viewModel()
 ) {
-    val filteredItems by viewModel.filteredItems.collectAsState()
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Pesquisar Itens",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
-        // 1. Campo de Texto de Pesquisa
-        OutlinedTextField(
-            value = viewModel.searchQuery,
-            onValueChange = { viewModel.onSearchQueryChange(it) },
-            label = { Text("O que procuras?") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium
+        Text(
+            text = "Pesquisar itens",
+            style = MaterialTheme.typography.headlineSmall
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. Seleção de Tipo (Perdido / Achado)
-        Row(
+        OutlinedTextField(
+            value = viewModel.searchText,
+            onValueChange = viewModel::onSearchTextChange,
             modifier = Modifier.fillMaxWidth(),
+            label = { Text("Pesquisar por título, descrição ou local") },
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterButton(
-                label = "Perdidos",
-                isSelected = viewModel.selectedType == "lost",
-                modifier = Modifier.weight(1f),
-                onClick = { viewModel.onTypeChange("lost") }
+            FilterChip(
+                selected = viewModel.selectedType == "all",
+                onClick = { viewModel.onTypeChange("all") },
+                label = { Text("Todos") }
             )
-            FilterButton(
-                label = "Achados",
-                isSelected = viewModel.selectedType == "found",
-                modifier = Modifier.weight(1f),
-                onClick = { viewModel.onTypeChange("found") }
+
+            FilterChip(
+                selected = viewModel.selectedType == "lost",
+                onClick = { viewModel.onTypeChange("lost") },
+                label = { Text("Perdidos") }
+            )
+
+            FilterChip(
+                selected = viewModel.selectedType == "found",
+                onClick = { viewModel.onTypeChange("found") },
+                label = { Text("Achados") }
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 3. Lista de Resultados
-        if (filteredItems.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Sem resultados encontrados.", color = Color.Gray)
+        ExposedDropdownMenuBox(
+            expanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = !categoryExpanded }
+        ) {
+            OutlinedTextField(
+                value = viewModel.selectedCategory,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Categoria") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = categoryExpanded,
+                onDismissRequest = { categoryExpanded = false }
+            ) {
+                searchCategories.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category) },
+                        onClick = {
+                            viewModel.onCategoryChange(category)
+                            categoryExpanded = false
+                        }
+                    )
+                }
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        viewModel.errorMessage?.let {
+            Text(
+                text = "Erro: $it",
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
+        if (viewModel.filteredItems.isEmpty()) {
+            Text("Nenhum item encontrado.")
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(filteredItems) { item ->
-                    ItemCard(item)
+                items(viewModel.filteredItems) { item ->
+                    ItemCard(
+                        item = item,
+                        onClick = { onItemClick(item.id) }
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun FilterButton(label: String, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(label)
-    }
-}
-
-@Composable
-fun ItemCard(item: LostItem) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = item.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(
-                    text = if (item.type == "lost") "PERDIDO" else "ACHADO",
-                    color = if (item.type == "lost") Color.Red else Color(0xFF4CAF50),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-            Text(text = item.description, maxLines = 2, color = Color.DarkGray)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "📍 ${item.locationName}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

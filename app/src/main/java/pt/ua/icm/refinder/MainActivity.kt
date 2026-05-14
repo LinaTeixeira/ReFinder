@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import pt.ua.icm.refinder.data.repository.AuthRepository
 import pt.ua.icm.refinder.ui.navigation.BottomNavItem
 import pt.ua.icm.refinder.ui.screens.home.HomeScreen
@@ -25,6 +27,9 @@ import pt.ua.icm.refinder.ui.screens.profile.ProfileScreen
 import pt.ua.icm.refinder.ui.screens.report.ReportScreen
 import pt.ua.icm.refinder.ui.screens.search.SearchScreen
 import pt.ua.icm.refinder.ui.screens.auth.AuthScreen
+import pt.ua.icm.refinder.ui.screens.detail.ItemDetailScreen
+import pt.ua.icm.refinder.ui.screens.locker.LockerSelectionScreen
+import pt.ua.icm.refinder.ui.screens.map.MapScreen
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 
 class MainActivity : ComponentActivity() {
@@ -52,8 +57,9 @@ fun MainScreen() {
 
     val items = listOf(
         BottomNavItem.Home,
-        BottomNavItem.Report,
         BottomNavItem.Search,
+        BottomNavItem.Map,
+        BottomNavItem.Report,
         BottomNavItem.Profile
     )
 
@@ -104,9 +110,53 @@ fun MainScreen() {
                 )
             }
 
-            composable(BottomNavItem.Home.route) { HomeScreen() }
+            composable(BottomNavItem.Home.route) {
+                HomeScreen(
+                    onItemClick = { itemId ->
+                        navController.navigate("itemDetail/$itemId")
+                    }
+                )
+            }
+            composable(
+                route = "itemDetail/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val itemId = backStackEntry.arguments?.getString("itemId") ?: return@composable
+
+                ItemDetailScreen(
+                    itemId = itemId,
+                    onBack = { navController.popBackStack() },
+                    onDepositInLocker = { clickedItemId ->
+                        navController.navigate("lockerSelection/$clickedItemId")
+                    }
+                )
+            }
+            composable(
+                route = "lockerSelection/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val itemId = backStackEntry.arguments?.getString("itemId") ?: return@composable
+
+                LockerSelectionScreen(
+                    itemId = itemId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
             composable(BottomNavItem.Report.route) { ReportScreen() }
-            composable(BottomNavItem.Search.route) { SearchScreen() }
+            composable(BottomNavItem.Search.route) {
+                SearchScreen(
+                    onItemClick = { itemId ->
+                        navController.navigate("itemDetail/$itemId")
+                    }
+                )
+            }
+            composable(BottomNavItem.Map.route) {
+                MapScreen(
+                    onItemClick = { itemId ->
+                        navController.navigate("itemDetail/$itemId")
+                    }
+                )
+            }
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen(navController = navController)
             }

@@ -22,7 +22,10 @@ import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    homeViewModel: HomeViewModel = viewModel(),
+    onItemClick: (String) -> Unit
+) {
     val items = homeViewModel.items
     val isLoading = homeViewModel.isLoading
     val errorMessage = homeViewModel.errorMessage
@@ -67,7 +70,10 @@ fun HomeScreen(homeViewModel: HomeViewModel = viewModel()) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(items) { item ->
-                    ItemCard(item = item)
+                    ItemCard(
+                        item = item,
+                        onClick = { onItemClick(item.id) }
+                    )
                 }
             }
         }
@@ -78,6 +84,6 @@ fun HomeScreen(homeViewModel: HomeViewModel = viewModel()) {
 @Composable
 fun HomeScreenPreview() {
     ReFinderTheme {
-        HomeScreen()
+        HomeScreen(onItemClick = {})
     }
 }

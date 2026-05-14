@@ -1,73 +1,69 @@
 package pt.ua.icm.refinder.ui.screens.search
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import com.google.firebase.firestore.ListenerRegistration
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import pt.ua.icm.refinder.data.model.LostItem
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
 
 class SearchViewModel : ViewModel() {
 
     private val repository = FirebaseItemRepository()
-    private var listenerRegistration: ListenerRegistration? = null
 
-    // Lista original vinda do Firestore
-    private var allItems = listOf<LostItem>()
-
-    // Estados da UI
-    var searchQuery by mutableStateOf("")
+    var allItems by mutableStateOf<List<LostItem>>(emptyList())
         private set
 
-    var selectedType by mutableStateOf("lost") // "lost" ou "found"
+    var searchText by mutableStateOf("")
         private set
 
-    // Fluxo da lista filtrada
-    private val _filteredItems = MutableStateFlow<List<LostItem>>(emptyList())
-    val filteredItems: StateFlow<List<LostItem>> = _filteredItems
+    var selectedType by mutableStateOf("all")
+        private set
+
+    var selectedCategory by mutableStateOf("Todas")
+        private set
+
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
     init {
-        observeItems()
-    }
-
-    private fun observeItems() {
-        listenerRegistration = repository.observeItems(
-            onDataChanged = { items ->
-                allItems = items
-                applyFilters()
+        repository.listenItems(
+            onSuccess = {
+                allItems = it
             },
-            onError = {
-                // Handle error if needed
+            onFailure = {
+                errorMessage = it.message
             }
         )
     }
 
-    fun onSearchQueryChange(newQuery: String) {
-        searchQuery = newQuery
-        applyFilters()
-    }
+    val filteredItems: List<LostItem>
+        get() {
+            return allItems.filter { item ->
 
-    fun onTypeChange(type: String) {
-        selectedType = type
-        applyFilters()
-    }
+                val matchesText =
+                    searchText.isBlank() ||
+                        item.title.contains(searchText, ignoreCase = true) ||
+                        item.description.contains(searchText, ignoreCase = true) ||
+                        item.locationName.contains(searchText, ignoreCase = true)
 
-    private fun applyFilters() {
-        val filtered = allItems.filter { item ->
-            val matchesText = item.title.contains(searchQuery, ignoreCase = true) ||
-                    item.description.contains(searchQuery, ignoreCase = true)
-            val matchesType = item.type.lowercase() == selectedType.lowercase()
+                val matchesType =
+                    selectedType == "all" || item.type == selectedType
 
-            matchesText && matchesType
+                val matchesCategory =
+                    selectedCategory == "Todas" || item.category == selectedCategory
+
+                matchesText && matchesType && matchesCategory
+            }
         }
-        _filteredItems.value = filtered
+
+    fun onSearchTextChange(value: String) {
+        searchText = value
     }
 
-    override fun onCleared() {
-        listenerRegistration?.remove()
-        super.onCleared()
+    fun onTypeChange(value: String) {
+        selectedType = value
+    }
+
+    fun onCategoryChange(value: String) {
+        selectedCategory = value
     }
 }
