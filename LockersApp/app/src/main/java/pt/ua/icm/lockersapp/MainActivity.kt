@@ -54,16 +54,18 @@ fun LockerScreen(modifier: Modifier = Modifier) {
     var isLocked by remember { mutableStateOf(true) }
 
     val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
-        if (result.contents == null) {
+        val scannedText = result.contents
+
+        if (scannedText == null) {
             Toast.makeText(context, "Leitura cancelada", Toast.LENGTH_SHORT).show()
         } else {
-            val qrCodeValido = "ABRIR_LOCKER_123"
-
-            if (result.contents == qrCodeValido) {
+            // Verifica se o código começa com "ReFinder"
+            if (scannedText.startsWith("REFINDER_PICKUP:")) {
+                val pin = scannedText.removePrefix("REFINDER_PICKUP:")
                 isLocked = false
-                Toast.makeText(context, "Acesso Concedido!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Acesso Concedido! PIN: $pin", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "QR Code Inválido!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "QR Code Inválido para ReFinder!", Toast.LENGTH_LONG).show()
             }
         }
     }
