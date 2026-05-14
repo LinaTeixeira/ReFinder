@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
 import pt.ua.icm.refinder.data.model.itemCategories
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
 import java.io.File
@@ -54,6 +53,7 @@ import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.views.overlay.MapEventsOverlay
 import android.location.Geocoder
 import androidx.compose.material.icons.filled.Search
+import coil.compose.rememberAsyncImagePainter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -477,9 +477,10 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                         val marker = Marker(mapView).apply {
                             position = point
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            title = "Local Selecionado"
+                            this.title = "Local Selecionado"
                         }
                         mapView.overlays.add(marker)
+                        marker.showInfoWindow()
                         mapView.invalidate()
                     }
                 },
