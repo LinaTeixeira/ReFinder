@@ -128,7 +128,7 @@ private fun TypeBadge(type: String) {
         color = color.copy(alpha = 0.15f)
     ) {
         Text(
-            text = if (isLost) "Lost" else "Found",
+            text = if (isLost) "Perdido" else "Achado",
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             color = color,
             style = MaterialTheme.typography.labelSmall,

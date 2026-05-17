@@ -168,6 +168,30 @@ fun ProfileScreen(
                         navController.navigate("adminClaims")
                     }
                 )
+
+                MenuCard(
+                    icon = Icons.Outlined.Password,
+                    title = "Validar PIN de levantamento",
+                    onClick = {
+                        navController.navigate("adminPinValidation")
+                    }
+                )
+
+                MenuCard(
+                    icon = Icons.Outlined.QrCodeScanner,
+                    title = "Validar QR Code",
+                    onClick = {
+                        navController.navigate("adminQrValidation")
+                    }
+                )
+
+                MenuCard(
+                    icon = Icons.Outlined.History,
+                    title = "Histórico de levantamentos",
+                    onClick = {
+                        navController.navigate("adminPickupHistory")
+                    }
+                )
             }
 
             MenuCard(

@@ -37,6 +37,9 @@ import pt.ua.icm.refinder.ui.screens.locker.LockerSelectionScreen
 import pt.ua.icm.refinder.ui.screens.map.MapScreen
 import pt.ua.icm.refinder.ui.screens.profile.MyItemsScreen
 import pt.ua.icm.refinder.ui.screens.admin.AdminClaimsScreen
+import pt.ua.icm.refinder.ui.screens.admin.AdminPinValidationScreen
+import pt.ua.icm.refinder.ui.screens.admin.AdminQrValidationScreen
+import pt.ua.icm.refinder.ui.screens.admin.AdminPickupHistoryScreen
 import pt.ua.icm.refinder.ui.screens.notifications.NotificationsScreen
 import pt.ua.icm.refinder.ui.screens.support.HelpSupportScreen
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
@@ -205,6 +208,21 @@ fun MainScreen() {
             composable("adminClaims") {
                 AdminClaimsScreen(
                     navController = navController,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("adminPinValidation") {
+                AdminPinValidationScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("adminQrValidation") {
+                AdminQrValidationScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("adminPickupHistory") {
+                AdminPickupHistoryScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

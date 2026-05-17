@@ -35,7 +35,7 @@ class HomeViewModel : ViewModel() {
 
         listenerRegistration = repository.observeItems(
             onDataChanged = { loadedItems ->
-                items = loadedItems.filter { it.userId != currentUserId }
+                items = loadedItems.filter { it.userId != currentUserId && it.status != "claimed" }
                 isLoading = false
             },
             onError = { exception ->

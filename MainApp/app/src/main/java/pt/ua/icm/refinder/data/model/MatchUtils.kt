@@ -9,7 +9,7 @@ fun findPossibleMatches(
     val oppositeType = if (currentItem.type == "lost") "found" else "lost"
 
     return allItems
-        .filter { it.id != currentItem.id && it.type == oppositeType }
+        .filter { it.id != currentItem.id && it.type == oppositeType && it.status != "claimed" }
         .mapNotNull { candidate ->
             val score = calculateMatchScore(currentItem, candidate)
 

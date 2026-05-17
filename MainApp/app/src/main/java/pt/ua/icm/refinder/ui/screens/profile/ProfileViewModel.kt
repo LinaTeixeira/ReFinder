@@ -62,7 +62,7 @@ class ProfileViewModel : ViewModel() {
 
         listenerRegistration = repository.observeItems(
             onDataChanged = { allItems ->
-                val filtered = allItems.filter { it.userId == currentUserId }
+                val filtered = allItems.filter { it.userId == currentUserId && it.status != "claimed" }
                 userItems = filtered
                 totalItems = filtered.size
                 lostItemsCount = filtered.count { it.type == "lost" }

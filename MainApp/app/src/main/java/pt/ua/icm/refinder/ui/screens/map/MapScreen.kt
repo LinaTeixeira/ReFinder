@@ -41,7 +41,7 @@ fun MapScreen(
 ) {
     val context = LocalContext.current
     val items = viewModel.allItems
-    val itemsWithLocation = items.filter { it.latitude != null && it.longitude != null }
+    val itemsWithLocation = items.filter { it.latitude != null && it.longitude != null && it.status != "claimed" }
 
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(

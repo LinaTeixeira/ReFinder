@@ -352,7 +352,8 @@ class FirebaseItemRepository {
                         itemRef,
                         mapOf(
                             "status" to "ready_for_pickup",
-                            "claimedByUserId" to claim.claimantUserId
+                            "claimedByUserId" to claim.claimantUserId,
+                            "claimedByUserEmail" to claim.claimantEmail
                         )
                     )
                 }
@@ -420,6 +421,102 @@ class FirebaseItemRepository {
             .document(notificationId)
             .update("isRead", true)
             .addOnFailureListener { onFailure(it) }
+    }
+
+    fun validatePickup(
+        lockerId: String,
+        pin: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("items")
+            .whereEqualTo("lockerId", lockerId)
+            .whereEqualTo("pickupPin", pin)
+            .whereEqualTo("status", "ready_for_pickup")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val itemDoc = snapshot.documents.firstOrNull()
+
+                if (itemDoc == null) {
+                    onFailure(Exception("PIN inválido ou item não disponível para levantamento."))
+                    return@addOnSuccessListener
+                }
+
+                val item = itemDoc.toObject(LostItem::class.java)
+                val batch = db.batch()
+
+                val itemRef = db.collection("items").document(itemDoc.id)
+                val lockerRef = db.collection("lockers").document(lockerId)
+
+                batch.update(
+                    itemRef,
+                    mapOf(
+                        "status" to "claimed",
+                        "pickedUpByUserId" to item?.claimedByUserId,
+                        "pickedUpByUserEmail" to item?.claimedByUserEmail,
+                        "pickedUpAt" to System.currentTimeMillis()
+                    )
+                )
+
+                batch.update(
+                    lockerRef,
+                    mapOf(
+                        "isAvailable" to true,
+                        "currentItemId" to null
+                    )
+                )
+
+                batch.commit()
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { onFailure(it) }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenOccupiedLockers(
+        onSuccess: (List<Locker>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ): ListenerRegistration {
+        return db.collection("lockers")
+            .whereEqualTo("isAvailable", false)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onFailure(error)
+                    return@addSnapshotListener
+                }
+
+                val lockers = snapshot?.documents?.mapNotNull {
+                    it.toObject(Locker::class.java)
+                } ?: emptyList()
+
+                onSuccess(lockers)
+            }
+    }
+
+    fun listenClaimedItems(
+        onSuccess: (List<LostItem>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ): ListenerRegistration {
+        return db.collection("items")
+            .whereEqualTo("status", "claimed")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onFailure(error)
+                    return@addSnapshotListener
+                }
+
+                val items = snapshot?.documents?.mapNotNull {
+                    it.toObject(LostItem::class.java)
+                }?.filter {
+                    it.type == "found" &&
+                    it.pickedUpAt != null &&
+                    !it.pickedUpByUserId.isNullOrBlank()
+                }?.sortedByDescending {
+                    it.pickedUpAt ?: 0L
+                } ?: emptyList()
+
+                onSuccess(items)
+            }
     }
 }
 

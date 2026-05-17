@@ -29,7 +29,7 @@ class SearchViewModel : ViewModel() {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
         repository.listenItems(
             onSuccess = {
-                allItems = it.filter { item -> item.userId != currentUserId }
+                allItems = it.filter { item -> item.userId != currentUserId && item.status != "claimed" }
             },
             onFailure = {
                 errorMessage = it.message
