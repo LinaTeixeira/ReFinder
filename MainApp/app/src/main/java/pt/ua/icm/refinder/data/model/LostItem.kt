@@ -17,5 +17,6 @@ data class LostItem(
     
     val lockerId: String? = null,
     val pickupPin: String? = null,
-    val status: String = "reported" // reported, deposited, claimed
+    val claimedByUserId: String? = null,
+    val status: String = "reported" // reported, deposited, ready_for_pickup, claimed
 )

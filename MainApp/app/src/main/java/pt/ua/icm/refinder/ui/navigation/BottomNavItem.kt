@@ -16,7 +16,8 @@ sealed class BottomNavItem(
 ) {
     object Home : BottomNavItem("home", "Home", Icons.Default.Home)
     object Search : BottomNavItem("search", "Pesquisar", Icons.Default.Search)
-    object Map : BottomNavItem("map", "Mapa", Icons.Default.LocationOn)
     object Report : BottomNavItem("report", "Registar", Icons.Default.Add)
+    object Map : BottomNavItem("map", "Mapa", Icons.Default.LocationOn)
+
     object Profile : BottomNavItem("profile", "Perfil", Icons.Default.Person)
 }

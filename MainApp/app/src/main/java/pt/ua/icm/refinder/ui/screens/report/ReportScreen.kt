@@ -8,9 +8,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -20,8 +22,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -29,6 +34,11 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import pt.ua.icm.refinder.data.model.itemCategories
 import pt.ua.icm.refinder.ui.theme.ReFinderTheme
+import pt.ua.icm.refinder.ui.theme.RefinderAccent
+import pt.ua.icm.refinder.ui.theme.RefinderBackground
+import pt.ua.icm.refinder.ui.theme.RefinderSurface
+import pt.ua.icm.refinder.ui.theme.RefinderSurfaceLight
+import pt.ua.icm.refinder.ui.theme.RefinderTextMuted
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -266,17 +276,30 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .background(RefinderBackground)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 96.dp),
 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(
-            text = "Registar um item",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "Registar item",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+
+            Text(
+                text = "Adiciona uma foto, localização e detalhes para ajudar a comunidade.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = RefinderTextMuted
+            )
+        }
 
         SingleChoiceSegmentedButtonRow(
             modifier = Modifier.fillMaxWidth()
@@ -297,7 +320,9 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             value = title,
             onValueChange = { title = it },
             label = { Text("Nome do item") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = refinderTextFieldColors()
         )
 
         // CATEGORY
@@ -314,7 +339,8 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                     .fillMaxWidth()
                     .menuAnchor(),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                shape = RoundedCornerShape(18.dp),
+                colors = refinderTextFieldColors()
             )
 
             ExposedDropdownMenu(
@@ -337,22 +363,49 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(220.dp)
                 .clickable { showImageSourceDialog = true },
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = RefinderSurface
+            )
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
                 if (imageUri != null) {
                     Image(
                         painter = rememberAsyncImagePainter(imageUri),
                         contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(24.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp))
-                        Text("Toque para adicionar uma foto")
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = RefinderAccent
+                        )
+
+                        Text(
+                            text = "Adicionar foto do item",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "Câmara ou galeria",
+                            color = RefinderTextMuted,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
@@ -360,22 +413,34 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
 
         // GENERATE DESCRIPTION BUTTON
         if (imageUri != null) {
-            Button(
+            OutlinedButton(
                 onClick = {
-                    // Use the function defined at the bottom of this file
                     val bitmap = uriToBitmap(context, imageUri!!)
 
                     viewModel.generateAiDescription(bitmap) { generatedText ->
                         description = generatedText
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !viewModel.isAiLoading
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                enabled = !viewModel.isAiLoading,
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = RefinderAccent
+                )
             ) {
                 if (viewModel.isAiLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = RefinderAccent,
+                        strokeWidth = 2.dp
+                    )
                 } else {
-                    Text("Gerar descrição com IA")
+                    Text(
+                        text = "Gerar descrição com IA",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -386,7 +451,9 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             onValueChange = { description = it },
             label = { Text("Adicione uma descrição") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3
+            minLines = 3,
+            shape = RoundedCornerShape(18.dp),
+            colors = refinderTextFieldColors()
         )
 
         // LOCAL SEARCH
@@ -406,64 +473,80 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                 }) {
                     Icon(Icons.Default.Search, contentDescription = "Search Location")
                 }
-            }
+            },
+            shape = RoundedCornerShape(18.dp),
+            colors = refinderTextFieldColors()
         )
 
         // MAP
         Text(
             text = "Localização GPS",
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
             modifier = Modifier.align(Alignment.Start)
         )
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(260.dp)
                 .pointerInput(Unit) {
                     detectDragGestures { _, _ -> }
                 },
-            shape = MaterialTheme.shapes.medium
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = RefinderSurface
+            )
         ) {
             AndroidView(
-                factory = { ctx ->MapView(ctx).apply {
-                    setTileSource(TileSourceFactory.MAPNIK)
+                factory = { ctx ->
+                    MapView(ctx).apply {
+                        setTileSource(TileSourceFactory.MAPNIK)
+                        setMultiTouchControls(true)
+                        setBuiltInZoomControls(false)
+                        controller.setZoom(15.0)
 
-                    setMultiTouchControls(true)       // Enables pinch-to-zoom
-                    setBuiltInZoomControls(false)      // Enables zoom controls
-                    controller.setZoom(15.0)
+                        val startPoint = if (latitude != null && longitude != null) {
+                            GeoPoint(latitude!!, longitude!!)
+                        } else {
+                            GeoPoint(40.6331, -8.6596)
+                        }
 
-                    val startPoint = if (latitude != null && longitude != null)
-                        GeoPoint(latitude!!, longitude!!)
-                    else GeoPoint(46.0, -8.0)  // Aveiro
-                    controller.setCenter(startPoint)
+                        controller.setCenter(startPoint)
 
-                    val receiver = object : MapEventsReceiver {
-                        override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
-                            latitude = p.latitude
-                            longitude = p.longitude
-                            val geocoder = Geocoder(context, Locale.getDefault())
-                            try {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    geocoder.getFromLocation(p.latitude, p.longitude, 1) { addresses ->
-                                        addresses.firstOrNull()?.let { addr ->
+                        val receiver = object : MapEventsReceiver {
+                            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                                latitude = p.latitude
+                                longitude = p.longitude
+
+                                val geocoder = Geocoder(context, Locale.getDefault())
+
+                                try {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        geocoder.getFromLocation(p.latitude, p.longitude, 1) { addresses ->
+                                            addresses.firstOrNull()?.let { addr ->
+                                                location = addr.getAddressLine(0) ?: ""
+                                            }
+                                        }
+                                    } else {
+                                        val addresses = geocoder.getFromLocation(p.latitude, p.longitude, 1)
+                                        addresses?.firstOrNull()?.let { addr ->
                                             location = addr.getAddressLine(0) ?: ""
                                         }
                                     }
-                                } else {
-                                    val addresses = geocoder.getFromLocation(p.latitude, p.longitude, 1)
-                                    addresses?.firstOrNull()?.let { addr ->
-                                        location = addr.getAddressLine(0) ?: ""
-                                    }
+                                } catch (e: Exception) {
+                                    // ignore geocoding errors
                                 }
-                            } catch (e: Exception) { /* ignore geocoding errors */ }
 
-                            return true
+                                return true
+                            }
+
+                            override fun longPressHelper(p: GeoPoint): Boolean = false
                         }
-                        override fun longPressHelper(p: GeoPoint): Boolean = false
+
+                        overlays.add(MapEventsOverlay(receiver))
                     }
-                    overlays.add(MapEventsOverlay(receiver))
-                }
                 },
                 update = { mapView ->
                     if (latitude != null && longitude != null) {
@@ -477,8 +560,9 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                         val marker = Marker(mapView).apply {
                             position = point
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            this.title = "Local Selecionado"
+                            setTitle("Local selecionado")
                         }
+
                         mapView.overlays.add(marker)
                         marker.showInfoWindow()
                         mapView.invalidate()
@@ -496,7 +580,8 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                 "GPS não disponível"
             },
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant // Optional: use a subtler color
+            color = RefinderTextMuted,
+            modifier = Modifier.align(Alignment.Start)
         )
 
         // DATE
@@ -514,14 +599,8 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                     Icon(Icons.Default.DateRange, contentDescription = "Select Date")
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledBorderColor = MaterialTheme.colorScheme.outline,
-                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            shape = RoundedCornerShape(18.dp),
+            colors = refinderTextFieldColors()
         )
 
 
@@ -559,16 +638,26 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
-            enabled = !isLoading
+                .height(56.dp)
+                .padding(top = 8.dp),
+            enabled = !isLoading,
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = RefinderAccent,
+                contentColor = RefinderBackground
+            )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
+                    color = RefinderBackground
                 )
             } else {
-                Text("Registar Item ${types[selectedTypeIndex]}")
+                Text(
+                    text = "Registar ${types[selectedTypeIndex]}",
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -594,6 +683,23 @@ fun uriToBitmap(context: Context, uri: Uri): Bitmap {
         ImageDecoder.decodeBitmap(source)
     }
 }
+@Composable
+private fun refinderTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedBorderColor = RefinderAccent,
+    unfocusedBorderColor = Color(0xFF2A3145),
+    focusedLabelColor = RefinderAccent,
+    unfocusedLabelColor = RefinderTextMuted,
+    cursorColor = RefinderAccent,
+    focusedContainerColor = RefinderSurface,
+    unfocusedContainerColor = RefinderSurface,
+    disabledTextColor = Color.White,
+    disabledBorderColor = Color(0xFF2A3145),
+    disabledLabelColor = RefinderTextMuted,
+    disabledTrailingIconColor = RefinderTextMuted
+)
+
 @SuppressLint("MissingPermission")
 private fun getCurrentLocation(
     context: Context,

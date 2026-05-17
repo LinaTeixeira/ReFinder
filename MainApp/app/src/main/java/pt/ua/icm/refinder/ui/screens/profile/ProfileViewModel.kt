@@ -30,8 +30,31 @@ class ProfileViewModel : ViewModel() {
     var foundItemsCount by mutableStateOf(0)
         private set
 
+    var isAdmin by mutableStateOf(false)
+        private set
+
+    var unreadNotificationsCount by mutableStateOf(0)
+        private set
+
     init {
         observeUserItems()
+        checkAdminStatus()
+        observeNotifications()
+    }
+
+    private fun observeNotifications() {
+        repository.listenUserNotifications(
+            onSuccess = { notifications ->
+                unreadNotificationsCount = notifications.count { !it.isRead }
+            },
+            onFailure = {}
+        )
+    }
+
+    private fun checkAdminStatus() {
+        repository.isCurrentUserAdmin { result ->
+            isAdmin = result
+        }
     }
 
     private fun observeUserItems() {

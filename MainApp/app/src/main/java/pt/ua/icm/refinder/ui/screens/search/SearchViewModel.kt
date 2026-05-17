@@ -2,6 +2,7 @@ package pt.ua.icm.refinder.ui.screens.search
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import pt.ua.icm.refinder.data.model.LostItem
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
 
@@ -25,9 +26,10 @@ class SearchViewModel : ViewModel() {
         private set
 
     init {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
         repository.listenItems(
             onSuccess = {
-                allItems = it
+                allItems = it.filter { item -> item.userId != currentUserId }
             },
             onFailure = {
                 errorMessage = it.message

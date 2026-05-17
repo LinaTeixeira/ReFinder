@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 import pt.ua.icm.refinder.data.model.LostItem
 import pt.ua.icm.refinder.data.repository.FirebaseItemRepository
@@ -30,10 +31,11 @@ class HomeViewModel : ViewModel() {
     private fun observeItems() {
         isLoading = true
         errorMessage = null
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
         listenerRegistration = repository.observeItems(
             onDataChanged = { loadedItems ->
-                items = loadedItems
+                items = loadedItems.filter { it.userId != currentUserId }
                 isLoading = false
             },
             onError = { exception ->
