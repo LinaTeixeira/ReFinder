@@ -6,10 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import pt.ua.icm.refinder.data.repository.AuthRepository
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthViewModel : ViewModel() {
 
     private val repository = AuthRepository()
+    private val db = FirebaseFirestore.getInstance()
+
+    var isAdmin by mutableStateOf(false)
+        private set
 
     var isLoading by mutableStateOf(false)
         private set
@@ -23,6 +28,30 @@ class AuthViewModel : ViewModel() {
     val isLoggedIn: Boolean
         get() = repository.isUserLoggedIn()
 
+    init {
+        checkAdminStatus()
+    }
+
+    fun checkAdminStatus() {
+        val uid = currentUserId()
+        if (uid.isEmpty()) {
+            isAdmin = false
+            return
+        }
+
+        db.collection("admins").document(uid).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val role = document.getString("role")
+                    isAdmin = (role == "admin")
+                } else {
+                    isAdmin = false
+                }
+            }
+            .addOnFailureListener {
+                isAdmin = false
+            }
+    }
     fun login(email: String, password: String) {
         isLoading = true
         successMessage = null
@@ -32,6 +61,7 @@ class AuthViewModel : ViewModel() {
             email = email,
             password = password,
             onSuccess = {
+                checkAdminStatus()
                 isLoading = false
                 successMessage = "Login com sucesso."
             },
@@ -67,6 +97,7 @@ class AuthViewModel : ViewModel() {
 
     fun logout() {
         repository.logout()
+        isAdmin = false
     }
 
     fun clearMessages() {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +48,8 @@ import pt.ua.icm.refinder.ui.theme.RefinderBackground
 import pt.ua.icm.refinder.ui.theme.RefinderPrimary
 import pt.ua.icm.refinder.ui.theme.RefinderSurface
 import pt.ua.icm.refinder.ui.theme.RefinderTextSecondary
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import pt.ua.icm.refinder.ui.screens.auth.AuthViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,14 +66,15 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
     val authRepository = AuthRepository()
+    val authViewModel: AuthViewModel = viewModel()
 
     val startDestination = if (authRepository.isUserLoggedIn()) {
-        BottomNavItem.Home.route
+        if (authViewModel.isAdmin) BottomNavItem.Map.route else BottomNavItem.Home.route
     } else {
         "auth"
     }
 
-    val items = listOf(
+    val allItems = listOf(
         BottomNavItem.Home,
         BottomNavItem.Search,
         BottomNavItem.Report,
@@ -79,19 +82,22 @@ fun MainScreen() {
         BottomNavItem.Profile
     )
 
+    val visibleItems = if (authViewModel.isAdmin) {
+        allItems.filter { it.route == BottomNavItem.Map.route || it.route == BottomNavItem.Profile.route }
+    } else {
+        allItems
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
     val showBottomBar = currentRoute != "auth"
 
     Scaffold(
         containerColor = RefinderBackground,
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = RefinderSurface
-                ) {
-                    items.forEach { item ->
+                NavigationBar(containerColor = RefinderSurface) {
+                    visibleItems.forEach { item ->
                         NavigationBarItem(
                             selected = currentRoute == item.route,
                             onClick = {
@@ -100,14 +106,9 @@ fun MainScreen() {
                                     launchSingleTop = true
                                 }
                             },
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label
-                                )
-                            },
+                            icon = { Icon(item.icon, contentDescription = item.label) },
                             label = { Text(item.label) },
-                            colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                            colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = RefinderBackground,
                                 selectedTextColor = RefinderPrimary,
                                 indicatorColor = RefinderPrimary,
@@ -128,7 +129,9 @@ fun MainScreen() {
             composable("auth") {
                 AuthScreen(
                     onAuthSuccess = {
-                        navController.navigate(BottomNavItem.Home.route) {
+                        authViewModel.checkAdminStatus()
+                        val target = if (authViewModel.isAdmin) BottomNavItem.Map.route else BottomNavItem.Home.route
+                        navController.navigate(target) {
                             popUpTo("auth") { inclusive = true }
                             launchSingleTop = true
                         }

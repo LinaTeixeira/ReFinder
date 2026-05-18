@@ -47,7 +47,7 @@ fun AdminQrValidationScreen(
                 setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 setPrompt("Aponta para o QR Code de levantamento")
                 setBeepEnabled(true)
-                setOrientationLocked(true)
+                setOrientationLocked(false)
             }
 
             qrLauncher.launch(options)
