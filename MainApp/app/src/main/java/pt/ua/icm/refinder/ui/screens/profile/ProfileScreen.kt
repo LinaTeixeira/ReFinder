@@ -266,7 +266,9 @@ private fun PremiumStatCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 14.dp),
+            modifier = Modifier
+                .padding(vertical = 14.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(

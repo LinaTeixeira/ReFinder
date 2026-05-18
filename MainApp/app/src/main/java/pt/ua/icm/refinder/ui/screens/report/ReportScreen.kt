@@ -655,7 +655,7 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                 )
             } else {
                 Text(
-                    text = "Registar ${types[selectedTypeIndex]}",
+                    text = "Registar Objeto ${types[selectedTypeIndex]}",
                     fontWeight = FontWeight.Bold
                 )
             }

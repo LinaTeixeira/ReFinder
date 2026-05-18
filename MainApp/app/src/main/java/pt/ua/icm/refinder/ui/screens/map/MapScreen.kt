@@ -41,8 +41,11 @@ fun MapScreen(
 ) {
     val context = LocalContext.current
     val items = viewModel.allItems
-    val itemsWithLocation = items.filter { it.latitude != null && it.longitude != null && it.status != "claimed" }
-
+    val itemsWithLocation = items.filter {
+        it.latitude != null &&
+                it.longitude != null &&
+                it.status != "claimed"
+    }
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(
             context,
@@ -114,7 +117,7 @@ fun MapScreen(
         MapLegend(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 16.dp, end = 16.dp, bottom = 96.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 22.dp)
         )
     }
 }
@@ -227,7 +230,7 @@ private fun MapLegend(
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
             LegendItem(
