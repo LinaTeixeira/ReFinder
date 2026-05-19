@@ -16,7 +16,7 @@ Projeto desenvolvido no âmbito da disciplina de Introdução à Computação M�
 
 | Ecrã de Login | Feed Principal | Registar Item |
 |:---:|:---:|:---:|
-| ![Login](media/login.png) | ![Feed](media/feed.png) | ![Report](media/report.png) |
+| ![Feed](media/feed.jpg) | ![Report](media/report.jpg) | ![Map](media/map.jpg) |
 
 
 ---
@@ -57,7 +57,6 @@ Para garantir que a aplicação resolve problemas reais de forma intuitiva, base
 O fluxo de navegação foi desenhado para ser fluido e acessível com o menor número de cliques possível:
 
 ![Fluxo de Ecrãs do ReFinder](media/Ecras1.png)
-![Fluxo de Ecrãs2 do ReFinder](media/Ecras2.png)
 
 ---
 
