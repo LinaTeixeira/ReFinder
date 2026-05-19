@@ -16,24 +16,16 @@ object WorkScheduler {
             .build()
 
         val request = PeriodicWorkRequestBuilder<MaintenanceWorker>(
-            15,
-            TimeUnit.MINUTES
+            24,
+            TimeUnit.HOURS
         )
             .setConstraints(constraints)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "refinder_maintenance_worker",
+            "refinder_read_notifications_cleanup",
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )
-    }
-
-    // Para testar sem esperar 15 minutos
-    fun runMaintenanceNow(context: Context) {
-        val request = androidx.work.OneTimeWorkRequestBuilder<MaintenanceWorker>()
-            .build()
-
-        WorkManager.getInstance(context).enqueue(request)
     }
 }
