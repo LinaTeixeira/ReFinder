@@ -65,7 +65,6 @@ fun MapScreen(
                 MapView(ctx).apply {
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
-                    setBuiltInZoomControls(false)
                     controller.setZoom(15.0)
                     controller.setCenter(GeoPoint(40.6332, -8.6594))
                 }

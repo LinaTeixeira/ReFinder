@@ -6,8 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -40,7 +40,7 @@ fun HelpSupportScreen(
                     contentColor = Color.White
                 )
             ) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "Voltar")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar")
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -119,7 +119,7 @@ fun HelpSupportScreen(
                     disabledContentColor = RefinderTextMuted
                 )
             ) {
-                Icon(Icons.Outlined.Send, contentDescription = "Enviar")
+                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Enviar")
             }
         }
     }

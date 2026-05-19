@@ -93,7 +93,10 @@ fun AdminPinValidationScreen(
                         placeholder = { Text("Escolhe o cacifo") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(
+                                type = MenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            ),
                         leadingIcon = {
                             Icon(Icons.Outlined.Lock, contentDescription = null)
                         },

@@ -50,10 +50,15 @@ import pt.ua.icm.refinder.ui.theme.RefinderSurface
 import pt.ua.icm.refinder.ui.theme.RefinderTextSecondary
 import androidx.lifecycle.viewmodel.compose.viewModel
 import pt.ua.icm.refinder.ui.screens.auth.AuthViewModel
+import pt.ua.icm.refinder.workers.WorkScheduler
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        WorkScheduler.scheduleMaintenanceWork(this)
+
         setContent {
             ReFinderTheme {
                 MainScreen()

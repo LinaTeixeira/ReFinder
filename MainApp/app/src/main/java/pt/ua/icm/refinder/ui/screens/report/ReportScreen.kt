@@ -337,7 +337,10 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                 label = { Text("Categoria") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(
+                        type = MenuAnchorType.PrimaryNotEditable,
+                        enabled = true
+                    ),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                 shape = RoundedCornerShape(18.dp),
                 colors = refinderTextFieldColors()
@@ -504,7 +507,6 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel()) {
                     MapView(ctx).apply {
                         setTileSource(TileSourceFactory.MAPNIK)
                         setMultiTouchControls(true)
-                        setBuiltInZoomControls(false)
                         controller.setZoom(15.0)
 
                         val startPoint = if (latitude != null && longitude != null) {
